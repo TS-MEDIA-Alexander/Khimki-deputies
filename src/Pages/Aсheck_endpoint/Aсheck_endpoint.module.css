@@ -1,0 +1,17 @@
+.btnG {
+   background: rgb(68, 179, 16);
+   border-radius: 20px;
+   padding: 10px;
+}
+
+.btnB {
+   background: rgb(133, 124, 209);
+   border-radius: 20px;
+   padding: 10px;
+}
+
+.btnM {
+   background: rgb(216, 59, 138);
+   border-radius: 20px;
+   padding: 10px;
+}

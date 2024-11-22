@@ -1,0 +1,662 @@
+* {
+   font-family: 'Inter', sans-serif;
+}
+
+ul,
+ol {
+   padding-left: 20px;
+   margin: 0;
+}
+
+input {
+   border: none;
+}
+
+button {
+   border: none;
+   cursor: pointer;
+}
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+   margin: 0;
+   padding: 0;
+   border: 0;
+   font-size: 100%;
+   vertical-align: baseline;
+}
+
+.App {
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   min-height: 100vh;
+}
+
+.wrapper {
+   flex: 1 0 auto;
+}
+
+.rowBlock {
+   display: flex;
+   justify-content: space-between;
+}
+
+@media screen and (max-width: 1370px) {
+   .rowBlock {
+      flex-direction: column;
+      align-items: center;
+   }
+}
+
+/* Заголовок страницы */
+.pageTitle {
+   color: #303030;
+   font-family: 'Inter';
+   font-size: 28px;
+   font-style: normal;
+   font-weight: 600;
+   line-height: 40px;
+   letter-spacing: -0.56px;
+}
+
+.pageSubtitle {
+   color: #212121;
+   font-size: 28px;
+   font-style: normal;
+   font-weight: 600;
+   line-height: 40px;
+   letter-spacing: -0.56px;
+}
+
+.description {
+   display: block;
+   color: #808080;
+   font-size: 14px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 16px;
+   letter-spacing: -0.28px;
+   text-decoration: none;
+}
+
+.text {
+   width: 860px;
+   color: #303030;
+   font-size: 14px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 20px;
+   letter-spacing: -0.28px;
+}
+
+.text ol,
+.text ul,
+.text p:not(:first-child) {
+   margin-top: 14px;
+}
+
+.juridicalInfo {
+   color: #808080;
+   font-size: 14px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 20px;
+}
+
+/* Колонки */
+/* .columnContainer {
+   display: flex;
+}
+
+.columnLarge {
+   width: calc(76% - 10px);
+}
+
+.columnSmal {
+   width: calc(24% - 10px);
+} */
+
+@media screen and (max-width: 1370px) {
+   .columnContainer {
+      flex-direction: column;
+   }
+
+   .columnLarge,
+   .columnSmal {
+      width: 100%;
+   }
+}
+
+/* Граница */
+.borderMain {
+   border-radius: 12px;
+   padding: 40px;
+   border: 1px solid #EDEDED;
+}
+
+@media screen and (max-width: 745px) {
+   .borderMain {
+      padding: 24px;
+      border-radius: 24px;
+   }
+
+   .juridicalInfo {
+      display: none;
+   }
+}
+
+/* Главная заливка */
+.bgMain {
+   background: #FFEC00;
+}
+
+.borderLeftMain {
+   border-left: 2px solid #FFEC00;
+}
+
+/* Стили хлебных крошек */
+.breadcrumbs {
+   display: flex;
+   cursor: pointer;
+}
+
+.breadcrumbsFrom {
+   color: #808080;
+   font-size: 12px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 24px;
+   text-decoration: none;
+}
+
+.breadcrumbsFrom:not(:first-child) {
+   margin-left: 10px;
+}
+
+.breadcrumbsTo {
+   margin-left: 5px;
+   max-width: 341px;
+   display: block;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   overflow: hidden;
+   color: #303030;
+   font-size: 12px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 24px;
+   text-decoration: none;
+}
+
+@media screen and (max-width: 745px) {
+
+   .breadcrumbsFrom,
+   .breadcrumbsTo {
+      font-size: 12px;
+   }
+}
+
+/* Карточка */
+.cardContainer {
+   display: flex;
+   justify-content: space-between;
+
+}
+
+/* Состояние кнопок */
+.btnArrow {
+   display: inline-flex !important;
+   align-items: center;
+}
+
+@media screen and (max-width: 745px) {
+   .btnArrow {
+      padding: 8px 16px;
+   }
+}
+
+.btnY {
+   display: inline-block;
+   border-radius: 10px;
+   padding: 8px 24px;
+   background: #FFEC00;
+   color: #8C7E00;
+   font-family: 'Inter';
+   font-size: 16px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 24px;
+   cursor: pointer;
+   text-decoration: none;
+}
+
+.btnY:hover {
+   background: #FFF57C;
+}
+
+.btnY:active {
+   background: #F2DD6C;
+}
+
+@media screen and (max-width: 745px) {
+   .btnY {
+      font-size: 12px !important;
+      line-height: 16px !important;
+   }
+}
+
+/*  */
+.btnW {
+   border: 1px solid transparent;
+}
+
+.btnW:hover {
+   color: #DCDCDC;
+   border: 1px solid #FFEC00;
+}
+
+.btnW:hover img {
+   opacity: .2;
+}
+
+.btnW:active {
+   color: #303030;
+   border: 1px solid #FFEC00;
+}
+
+.btnW:active img {
+   opacity: 1;
+}
+
+/*  */
+.btnCircle {
+   /* background: #ffff; */
+   box-shadow: 0px 13px 33px 1px rgba(71, 71, 71, 0.24);
+}
+
+.btnCircle:hover {
+   /*  background-color: #F6F6F6; */
+}
+
+.btnCircle:active {
+   /* background-color: #EDEDED; */
+}
+
+/*  */
+.btnCircleG {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border-radius: 50%;
+   background: #F6F6F6;
+}
+
+.btnCircleG:hover {
+   background-color: #EDEDED;
+}
+
+.btnCircleG:active {
+   background-color: #DCDCDC;
+}
+
+/*  */
+.btnRad {
+   background: linear-gradient(.439turn, #ffec00 35%, #fee305 61%, #f9bf16);
+}
+
+.btnRad:hover {
+   background: linear-gradient(.439turn, #FFF57C 35%, #FFF57C 61%, #ffd373);
+}
+
+.btnRad:active {
+   background: linear-gradient(.439turn, #F2DD6C 35%, #F2DD6C 61%, #f7b465);
+}
+
+/* Состояние кнопок для баннеров */
+/* белые кнопки на баннерах */
+.btnWBanner {
+   background: #fff;
+   color: #303030;
+}
+
+.btnWBanner:hover {
+   background: #EDEDED;
+}
+
+.btnWBanner:active {
+   background: #DCDCDC;
+}
+
+.btnWBanner:active .btnText {
+   color: #808080;
+}
+
+/* госуслуги */
+.btnGosBanner {
+   background: #0D4CD3;
+}
+
+.btnGosBanner:hover {
+   background: #2C6AF0;
+}
+
+.btnGosBanner:active {
+   background: #0E3EA6;
+   color: rgba(255, 255, 255, 0.50);
+}
+
+/* himki virtual */
+.btnVirtualBanner {
+   background: #AB190A;
+}
+
+.btnVirtualBanner:hover {
+   background: #DF2D1B;
+}
+
+.btnVirtualBanner:active {
+   background: #761006;
+   color: rgba(255, 255, 255, 0.50);
+}
+
+/* telegram */
+.btnTgBanner {
+   background: #019CE6;
+}
+
+.btnTgBanner:hover {
+   background: #73D2FF;
+}
+
+.btnTgBanner:active {
+   background: #0573A7;
+   color: rgba(255, 255, 255, 0.50);
+}
+
+/* vk */
+.btnVkBanner {
+   background: #07F;
+}
+
+.btnVkBanner:hover {
+   background: #439AFD;
+}
+
+.btnVkBanner:active {
+   background: #0059BE;
+   color: rgba(255, 255, 255, 0.50);
+}
+
+/* priemnaya */
+.btnPriemnayaBanner {
+   background: #C6D3DD;
+}
+
+.btnPriemnayaBanner:hover {
+   background: #E3ECF3;
+}
+
+.btnPriemnayaBanner:active {
+   background: #AABCC9;
+   color: #808080;
+}
+
+/* Текст */
+
+.subTitle {
+   font-size: 28px;
+   font-style: normal;
+   font-weight: 600;
+   line-height: 40px;
+}
+
+@media screen and (max-width: 745px) {
+   .subTitle {
+      font-size: 24px;
+      line-height: 28px;
+   }
+}
+
+.ml16 {
+   margin-left: 16px;
+}
+
+.ml20 {
+   margin-left: 20px;
+}
+
+@media screen and (max-width: 1370px) {
+   .ml20 {
+      margin-left: 0px;
+   }
+}
+
+.mr20 {
+   margin-right: 20px;
+}
+
+/* Отступы */
+
+.mt4 {
+   margin-top: 4px;
+}
+
+.mt8 {
+   margin-top: 8px;
+}
+
+.mt12 {
+   margin-top: 12px;
+}
+
+.mt14 {
+   margin-top: 14px;
+}
+
+.mt16 {
+   margin-top: 16px;
+}
+
+.mt20 {
+   margin-top: 20px;
+}
+
+.mt24 {
+   margin-top: 24px;
+}
+
+.mt32 {
+   margin-top: 32px;
+}
+
+.mt38 {
+   margin-top: 38px;
+}
+
+.mt40 {
+   margin-top: 40px;
+}
+
+.mt48 {
+   margin-top: 48px;
+}
+
+.mt75 {
+   margin-top: 75px;
+}
+
+.mt80 {
+   margin-top: 80px;
+}
+
+.mt120 {
+   margin-top: 120px;
+}
+
+.mt160 {
+   margin-top: 160px;
+}
+
+.mt280 {
+   margin-top: 280px;
+}
+
+.bannerArrowContainer {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: space-between;
+   width: 100%;
+}
+
+.oval {
+   display: inline-flex;
+   align-items: center;
+   color: #303030;
+   font-size: 16px;
+   font-style: normal;
+   font-weight: 400;
+   line-height: 24px;
+
+   padding: 8px 24px;
+   border-radius: 40px;
+   background: #F6F6F6;
+}
+
+.oval a {
+   text-decoration: none;
+   color: #303030;
+}
+
+@media screen and (max-width: 745px) {
+   .oval {
+      font-size: 12px;
+      line-height: 16px;
+      padding: 8px 16px;
+   }
+}
+
+
+.line {
+   width: 100%;
+   height: 1px;
+   background: #EDEDED;
+}
+
+.flexContainer {
+   display: flex;
+}
+
+.border {
+   border: 1px solid red;
+}
+
+.borderDocumentContainer>div:not(:first-child) {
+   margin-top: 32px;
+}
+
+.line {
+   background: #D9D9D9;
+}
+
+.containerGap24 {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 24px;
+}
+
+.imgContainerArrow {
+   flex: 0 0 24px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 24px;
+   height: 24px;
+   padding: 9px;
+   border-radius: 50%;
+   background: #F6F6F6;
+   cursor: pointer;
+}
+
+.imgContainerArrow img {
+   width: 100%;
+}
+
+@media screen and (max-width: 1370px) {
+   .mobileNoneContainer {
+      display: none;
+   }
+}
+
+@media screen and (max-width: 1225px) {
+   .pageTitle {
+      margin-top: 0;
+   }
+
+   .breadcrumbs {
+      margin-top: 0;
+   }
+}
+
+@media screen and (max-width: 1125px) {
+   .bannerArrowContainer {
+      justify-content: center;
+   }
+}
+
+@media screen and (max-width: 1006px) {
+   .text {
+      width: 100%;
+   }
+}
+
+@media screen and (max-width: 745px) {
+   .description {
+      font-size: 11px;
+   }
+
+   .pageTitle {
+      margin-top: 0 !important;
+      font-size: 20px;
+      line-height: 28px;
+      letter-spacing: -0.48px;
+   }
+
+   .pageSubtitle {
+      font-size: 24px;
+      line-height: 28px;
+      letter-spacing: -0.48px;
+   }
+
+   .text {
+      width: 100%;
+      font-size: 13px;
+      line-height: 24px;
+      letter-spacing: -0.48px;
+   }
+
+
+   .mt80 {
+      margin-top: 40px;
+   }
+
+   .mt40 {
+      margin-top: 20px;
+   }
+
+   .mt48 {
+      margin-top: 32px;
+   }
+}
