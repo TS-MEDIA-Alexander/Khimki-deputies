@@ -1,48 +1,112 @@
-import React from 'react';
-import s from './Documents.module.css';
-import DocumentContainerDownload from '../../Components/DocumentContainerDownload';
-import ContantContainerMain from '../../total/ContantContainerMain';
+import React, { useEffect, useState } from "react";
+import s from "./Documents.module.css";
+import DocumentContainerDownload from "../../Components/DocumentContainerDownload";
+import ContantContainerMain from "../../total/ContantContainerMain";
+import API from "../../API";
+import { NavLink } from "react-router-dom";
+import { ROUTER } from "../../config";
 
-const Documents = (props) => {
-   return (
-      <div>
-         <ContantContainerMain>
-            <div className="text">
-               <div className="mt40 pageTitle">Последние документы</div>
+const Documents = () => {
+  const [documentations, setDocumentations] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
 
-               <div className="mt40">
-                  <DocumentContainerDownload title='Решение от 26.12.2023 № 28/1' text='О внесении изменений в решение Совета депутатов городского округа Химки Московской области от 29.11.2022 № 15/1 «О бюджете городского округа Химки Московской области на 2023 год и на плановый период 2024 и 2025 годов»' date='26.12.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 20.12.2023 № 27/3' text='О внесении изменений в решение Совета депутатов городского округа Химки Московской области от 26.12.2019 № 31/3 «Об утверждении Порядка поощрения муниципальной управленческой команды городского округа Химки Московской области, ответственной за достижение Московской областью значений (уровней) показателей, утвержденных Указом Президента Российской Федерации от 04.02.2021 № 68 «Об оценке эффективности деятельности высших должностных лиц (руководителей высших исполнительных органов государственной власти) субъектов Российской Федерации и деятельности органов исполнительной власти субъектов Российской Федерации»' date='20.12.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 20.12.2023 № 27/2' text='О принятии движимого имущества из государственной собственности Московской области в муниципальную собственность городского округа Химки Московской области' date='20.12.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 20.12.2023 № 27/1' text='О внесении изменения в решение Совета депутатов городского округа Химки Московской области от 27.11.2009 № 48/4 «Об установлении корректирующего коэффициента (Пкд) и коэффициента, учитывающего местоположение земельного участка (Км), для определения арендной платы при предоставлении в аренду земельных участков на территории городского округа Химки»' date='26.12.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/10' text='О досрочном прекращении полномочий депутата Совета депутатов городского округа Химки Московской области  Кашникова Николая Александровича' date='30.11.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/7' text='О внесении изменений в Правила благоустройства территории городского округа Химки Московской области, утвержденные решением Совета депутатов городского округа Химки Московской области от 02.12.2020 № 41/6' date='30.11.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/6' text='Об утверждении Прогнозного плана приватизации имущества, находящегося в муниципальной собственности городского округа Химки Московской области, на 2024 год' date='30.11.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/5' text='Об установлении величины порогового значения доходов и стоимости имущества в целях признания граждан, проживающих в городском округе Химки Московской области, малоимущими и предоставления им по договорам социального найма жилых помещений муниципального жилищного фонда в 2024 году' date='30.11.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/4' text='О внесении изменений в Положение о муниципальном земельном контроле на территории городского округа Химки Московской области, утвержденное решением Совета депутатов городского округа Химки Московской области от 18.10.2021 № 02/7' date='30.11.2023' />
-               </div>
-               <div className="mt32">
-                  <DocumentContainerDownload title='Решение от 30.11.2023 № 26/3' text='О принятии движимого имущества из государственной собственности Московской области в муниципальную собственность городского округа Химки Московской области' date='30.11.2023' />
-               </div>
+  useEffect(() => {
+    API.getDocumentations(currentPage, limit).then((data) =>
+      setDocumentations(data)
+    );
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage, limit]);
+
+  const getDate = (date) => {
+    const [year, month, day] = date.split("-");
+    return `${day}.${month}.${year}`;
+  };
+
+  const totalPages = Math.ceil(documentations?.total / limit);
+
+  const changePage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const getPaginationItems = () => {
+    const pages = [];
+
+    if (currentPage > 3) {
+      pages.push(1);
+      if (currentPage > 4) {
+        pages.push("...");
+      }
+    }
+
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    if (currentPage < totalPages - 2) {
+      if (currentPage < totalPages - 3) {
+        pages.push("...");
+      }
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  return (
+    <div>
+      <ContantContainerMain>
+        <div className={`mt40 breadcrumbs`}>
+          <NavLink to={ROUTER.main} className="breadcrumbsFrom">
+            Главная
+          </NavLink>
+          <span className={"breadcrumbsTo"}> / Документы</span>
+        </div>
+        <div className="text">
+          <div className="mt40 pageTitle">Документы</div>
+
+          <div className={s.container}>
+            <div>
+              {documentations?.list?.map((el) => (
+                <div key={el.id} className="mt32">
+                  <DocumentContainerDownload
+                    title={el.name}
+                    text={el.description}
+                    date={getDate(el.date)}
+                    document={`https://sdhimki.ru${el.src}`}
+                    type={el.format}
+                  />
+                </div>
+              ))}
             </div>
-         </ContantContainerMain>
-      </div>
-   )
-}
+
+            <div className={s.paginationContainer}>
+              <span className={s.description}>Страницы:</span>
+              <div className={s.pagination}>
+                {getPaginationItems().map((page, index) => (
+                  <div
+                    key={index}
+                    className={`${s.paginationItem} ${
+                      currentPage === page ? s.active : ""
+                    } ${page === "..." ? s.disabled : ""}`}
+                    onClick={() => typeof page === "number" && changePage(page)}
+                  >
+                    {page}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ContantContainerMain>
+    </div>
+  );
+};
+
 export default Documents;

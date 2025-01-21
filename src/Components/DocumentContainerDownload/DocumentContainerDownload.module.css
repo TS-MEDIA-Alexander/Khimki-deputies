@@ -1,88 +1,97 @@
 .link {
-   width: 80%;
-   text-decoration: none;
-   display: flex;
-   color: #303030;
-   font-size: 16px;
-   font-style: normal;
-   font-weight: 500;
-   line-height: 24px;
-   letter-spacing: -0.32px;
-   cursor: pointer;
+  width: 80%;
+  text-decoration: none;
+  display: flex;
+  color: #303030;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: -0.32px;
+  cursor: pointer;
 }
 
 .textInner {
-   max-width: 610px;
-   font-weight: 600;
-   color: #303030;
-   font-family: 'Inter';
-   font-size: 12px;
-   font-weight: 400;
-   line-height: 16px;
-   letter-spacing: -0.24px;
+  max-width: 610px;
+  font-weight: 600;
+  color: #303030;
+  font-family: "Inter";
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.24px;
 }
 
 .title {
-   color: #303030;
-   font-family: 'Inter';
-   font-size: 14px;
-   font-style: normal;
-   font-weight: 500;
-   line-height: 20px;
-   letter-spacing: -0.28px;
+  color: #303030;
+  font-family: "Inter";
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.28px;
 }
 
 .datePublication {
-   color: #808080;
-   text-align: right;
-   font-size: 12px;
-   font-style: normal;
-   font-weight: 400;
-   line-height: 16px;
-   letter-spacing: -0.28px;
+  color: #808080;
+  align-self: flex-start;
+  text-align: right;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: -0.28px;
 }
 
 .documentIcon {
-   margin-right: 24px;
-   border-radius: 12px;
-   padding: 8px;
+  margin-right: 24px;
+  border-radius: 12px;
+  padding: 8px;
 }
 
 .PDF {
-   background: #E13D34;
+  background: #e13d34;
 }
 
 .DOCX {
-   background: #307CF1;
+  background: #307cf1;
+}
+
+.XLS {
+  background: #36a267;
+}
+
+.ARCHIVE {
+  background: #e12197;
 }
 
 .documentContainer {
-   width: 100%;
-   display: flex;
-   justify-content: space-between;
-   align-items: center;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 @media screen and (max-width: 745px) {
-   .link {
-      width: 100%;
-   }
+  .link {
+    width: 100%;
+  }
 
-   .datePublication {
-      display: none;
-   }
+  .datePublication {
+    display: none;
+  }
 
-   .textInner {
-      font-size: 12px;
-      line-height: 16px;
-   }
+  .textInner {
+    font-size: 12px;
+    line-height: 16px;
+  }
 
-   .documentIcon {
-      border-radius: 6px;
-      padding: 5px;
-   }
+  .documentIcon {
+    border-radius: 6px;
+    padding: 5px;
+  }
 
-   .documentContainer {
-      border: none;
-   }
+  .documentContainer {
+    border: none;
+  }
 }

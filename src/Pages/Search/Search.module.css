@@ -1,0 +1,22 @@
+.inputContainer {
+  display: flex;
+  gap: 8px;
+  padding: 16px 0px 16px 0px;
+  border-bottom: 1px solid #ededed;
+}
+
+img.img {
+  width: 24px;
+  height: 24px;
+}
+
+input {
+  outline: none;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+input::placeholder {
+  font-size: 16px;
+  line-height: 24px;
+}

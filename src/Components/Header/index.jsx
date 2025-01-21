@@ -4,8 +4,8 @@ import { NavLink } from "react-router-dom";
 import { ROUTER } from '../../config';
 import ContantContainerMain from '../../total/ContantContainerMain';
 import logo from '../../assets/img/logos/full-logo.svg';
-import icon from '../../assets/icons/version_visually_impaired.svg';
 import HeaderMobile from '../HeaderMobile';
+import searchIcon from '../../assets/icons/search.svg';
 
 const Header = (props) => {
 
@@ -46,7 +46,7 @@ const Header = (props) => {
                            <NavLink className={s.linkMenu} to={ROUTER.councilDeputies.legalBasisActivity}>
                               Правовая основа деятельности
                            </NavLink>
-                           <NavLink className={s.linkMenu} to={ROUTER.councilDeputies.deputies}>
+                           <NavLink className={s.linkMenu} to={ROUTER.councilDeputies.deputies.deputies}>
                               Депутаты
                            </NavLink>
                            <NavLink className={s.linkMenu} to={ROUTER.councilDeputies.compositionStructure}>
@@ -190,9 +190,15 @@ const Header = (props) => {
                      <button className={`${s.mobilHotLine} ${s.hotLine}`}>Горячая линия</button>
                   </div>
 
-                  {/* <div className={s.searchBlock}>Поиск
-
-                  </div> */}
+                  {/* <NavLink to={ROUTER.search} className={s.linkMenu}>
+                     <div className={s.searchBlock}>
+                        <div>
+                           <img src={searchIcon} alt="" />
+                        </div>
+                        <div>Поиск</div>
+                     </div>
+                  </NavLink> */}
+                 
                </div>
             </ContantContainerMain>
          </div>
