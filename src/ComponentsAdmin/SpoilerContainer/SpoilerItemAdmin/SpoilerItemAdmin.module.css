@@ -1,0 +1,38 @@
+.spoilerItemHead {
+   display: flex;
+   align-items: center;
+   padding: var(--paddings-padding-btn);
+   margin-top: 8px;
+   cursor: pointer;
+}
+
+.spoilerCollapse {
+   display: flex;
+   flex-direction: column;
+   height: 0;
+   overflow: hidden;
+   transition: height 1s;
+}
+
+.flexCenter img {
+   margin-left: 8px;
+}
+
+.rotate {
+   transform: rotate(180deg);
+}
+
+@media screen and (max-width: 745px) {
+   .btn {
+      padding: 5px;
+   }
+
+   .btn span {
+      display: none;
+   }
+
+   .spoilerItemHead {
+      font-size: 16px;
+      line-height: 20px;
+   }
+}

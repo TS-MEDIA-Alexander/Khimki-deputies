@@ -1,0 +1,14 @@
+.inputContainer {
+   position: relative;
+}
+
+.messageErr {
+   position: absolute;
+   bottom: -20px;
+   color: red;
+}
+
+.err {
+   border: 1px solid red;
+   border-radius: var(--radius-12);
+}
