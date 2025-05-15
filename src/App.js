@@ -91,7 +91,7 @@ function App({ setVisuallyImpairedActive, visuallyImpairedActive }) {
                   <Route path={ROUTER.councilDeputies.symbolism} element={<Symbolism />} />
                   <Route path={ROUTER.councilDeputies.deputies.main} element={<CouncilLayout />} >
                      <Route path={ROUTER.councilDeputies.deputies.deputies} element={<DeputiesMain />} />
-                     {/* <Route path={ROUTER.councilDeputies.deputies.chart} element={<ScheduleReceptionDeputies />} /> */}
+                     <Route path={ROUTER.councilDeputies.deputies.chart} element={<ScheduleReceptionDeputies />} />
                      <Route path={ROUTER.councilDeputies.deputies.awards} element={<AwardsCouncilDeputies />} />
                      <Route path={ROUTER.councilDeputies.deputies.rules} element={<RulesParliamentaryEthics />} />
                   </Route>
@@ -103,8 +103,6 @@ function App({ setVisuallyImpairedActive, visuallyImpairedActive }) {
                   <Route path={ROUTER.contacts.main} element={<Contacts />} />
                   <Route path={ROUTER.search} element={<Search />} />
                </Route>
-
-               {/* <Route path="*" element={<PageNotFound />} /> */}
 
                {/* admin страницы  */}
 
@@ -134,14 +132,12 @@ function App({ setVisuallyImpairedActive, visuallyImpairedActive }) {
                   <Route path={ROUTER.admin.rulesParliamentaryEthicsEdit} element={<RulesParliamentaryEthicsEdit level={1} />} />
                   <Route path={ROUTER.admin.compositionStandingCommitteesEdit} element={<CompositionStandingCommitteesEdit level={1} />} />
 
-
                </Route>
 
                <Route path='*' element={<PageNotFound />} />
 
             </Routes>
          </div>
-
 
       </div>
    );

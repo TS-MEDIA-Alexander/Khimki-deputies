@@ -3,7 +3,7 @@ import s from './UploadFileAdminMono.module.css';
 import IconWordPdfText from '../../Components/IconWordPdfText';
 import clearX from '../../assets/icons/clearX.svg';
 
-const UploadFileAdminMono = ({ handler, title, type, keyData }) => {
+const UploadFileAdminMono = ({ handler, title, type, keyData, id }) => {
 
    const [files, setFiles] = useState(null);
 
@@ -41,13 +41,13 @@ const UploadFileAdminMono = ({ handler, title, type, keyData }) => {
 
          <div className={s.fileUpload}>
             <div className={s.uploadBox}>
-               <label htmlFor={keyData} className={s.uploadBtn}>
+               <label htmlFor={id || keyData} className={s.uploadBtn}>
                   {title}
                   <br /> Поле обязательно для заполнения
                </label>
                <input
                   type="file"
-                  id={keyData}
+                  id={id || keyData}
                   className={s.dN}
                   onChange={handleFileChange}
                   accept=".doc, .docx, .pdf, .jpeg, .jpg, .png, .xls, .xlsx"
@@ -63,6 +63,7 @@ const UploadFileAdminMono = ({ handler, title, type, keyData }) => {
                            <IconWordPdfText type={'IMG'} /> :
                            files?.[0]?.name?.match(/.(doc|docx)$/i) ? <IconWordPdfText type={'DOCX'} /> :
                               files?.[0]?.name?.match(/.(PDF)$/i) ? <IconWordPdfText type={'PDF'} /> :
+                              files?.[0]?.name?.match(/(xlsx|xls)$/i) ? <IconWordPdfText type={'XLS'} /> :
                                  <IconWordPdfText type={'anotherFile'} />
                      }
                      <div className={s.fileInfoBlock}>
@@ -72,7 +73,6 @@ const UploadFileAdminMono = ({ handler, title, type, keyData }) => {
                      </div>
                   </div>
                ) : false
-
             }
          </div>
 

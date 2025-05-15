@@ -55,6 +55,10 @@
    letter-spacing: -0.24px;
 }
 
+.contentContainer {
+   width: 200px;
+}
+
 @media screen and (max-width: 935px) {
    .columnContainer {
       flex-direction: column;

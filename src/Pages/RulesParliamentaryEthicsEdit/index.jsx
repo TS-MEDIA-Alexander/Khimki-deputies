@@ -6,37 +6,43 @@ import s from './RulesParliamentaryEthicsEdit.module.css';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import Input from 'ComponentsAdmin/FormElements/Input';
-import Textarea from 'ComponentsAdmin/FormElements/Textarea';
 import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
+import API from 'API';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const RulesParliamentaryEthicsEdit = () => {
 
+   const id = 3643;
+
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveNews = (isPublished) => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
-      const valueIsPublished = isPublished ? 1 : 0;
-
-      /* for (let key in form) {
-         if (key !== 'file_url' &&
-            key !== 'published_from_date' &&
-            key !== 'published_from_time' &&
-            form[key] !== null) {
-            if (key === 'published_from') {
-               formData.append(key, value)
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else
-               formData.append(key, form[key]);
+      for (let key in form) {
+         if (form[key] !== null) {
+            formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response)) */
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
 
@@ -71,27 +77,25 @@ const RulesParliamentaryEthicsEdit = () => {
       mode: 'all',
       resolver: yupResolver(schema),
       defaultValues: {
-         content_category_id: 1,
+         content_category_id: 6,
+         id: id,
+         name: '',
          text: '',
       }
    });
 
    watch();
 
-   const getItemNews = async () => {
+   const getItem = async () => {
       setLoading(true);
       try {
-         /* const data = await API.getItemNews() */
-         /* const formattedData = {
+         const data = await API.getContent(id)
+         const formattedData = {
             ...getValues(),
             name: data?.name,
             text: data?.text,
-            file_url: [data?.file],
-            published_from_date: formatDateToEurope(data?.published_from?.split(' ')[0]),
-            published_from_time: data?.published_from?.split(' ')[1]?.slice(0, 5),
-            favorite: data?.favorite,
          }
-         reset(formattedData) */
+         reset(formattedData)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -100,41 +104,12 @@ const RulesParliamentaryEthicsEdit = () => {
    }
 
    useEffect(() => {
-      getItemNews();
+      getItem();
    }, [])
 
-   const handleImageChange = useCallback((file) => {
-      handler(file, 'file'); // Сохраняем File для отправки
-
-      if (file) {
-         const url = window.URL.createObjectURL(file);
-         handler(url, 'file_url')
-      } else {
-         handler('', 'file_url')
-      }
-      trigger('file')
-   }, [setValue]);
-
-   useEffect(() => {
-      return () => {
-         // Отзываем URL при размонтировании
-         const imageUrl = getValues('file_url');
-         if (imageUrl) {
-            window.URL.revokeObjectURL(imageUrl);
-         }
-      };
-   }, []);
-
-   const handler = useCallback((file, name) => {
-      setValue(name, file);
-   }, [setValue]);
-
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         saveNews(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveNews(false);
-      }
+      setPreloading(true);
+      save();
    };
 
    if (loading) {
@@ -159,14 +134,18 @@ const RulesParliamentaryEthicsEdit = () => {
                </div>
 
                <div className="rowContainer mt40">
-                  <button
-                     type='submit'
-                     className={`publishBtn ${!isValid && 'disable'}`}
-                     disabled={!isValid}
-                     name="publish"
-                  >Сохранить</button>
+                  <Button
+                     isValid={isValid}
+                     preload={preload}
+                     classNames={'publishBtn'}
+                     text={'Сохранить'}
+                     name={'publish'}
+                  />
                </div>
             </form>
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
 
          </>}
       </div>

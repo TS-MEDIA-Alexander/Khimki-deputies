@@ -15,6 +15,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from 'ComponentsAdmin/FormElements/Input';
 import Textarea from 'ComponentsAdmin/FormElements/Textarea';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const DocumentsArticlePageEdit = ({ level }) => {
 
@@ -22,8 +23,10 @@ const DocumentsArticlePageEdit = ({ level }) => {
 
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveDocument = (isPublished) => {
+   const saveDocument = async (isPublished) => {
       const form = getValues();
       const formData = new FormData();
 
@@ -49,31 +52,74 @@ const DocumentsArticlePageEdit = ({ level }) => {
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response))
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
    const schema = yup.object({
-      name: yup.string().typeError('Должно быть строкой')//typeError выводит ошибку, когда не строка
+      name: yup.string()
+         .typeError('Должно быть строкой')
          .min(2, 'Заголовок должен быть минимум 2 символа')
          .max(120, 'Не более 120 символов')
          .required('Обязательно'),
-      text: yup.string() //typeError выводит ошибку, когда не строка
-         .test(
-            'notEmpty',
-            'Обязательно',
-            (value) => {
-               if (!value) return false;
-               const cleanedValue = value.replace(/<p><br><\/p>/gi, '').trim();
-               return cleanedValue.length > 0;
+      text: yup.string()
+         .typeError('Должно быть строкой')
+         .min(2, 'Описание должно быть минимум 2 символа')
+         .required('Обязательно'),
+      file_add: yup.mixed()
+         .nullable()  //  <--- Разрешаем null
+         .test("fileSize", "The file is too large", (file_add) => {
+            if (!file_add) return true;
+
+            if (file_add instanceof FileList) {
+               if (file_add.length === 0) return true;
+               if (file_add[0]?.size > 2000000) return false;
+            } else if (Array.isArray(file_add)) {
+               if (file_add.length === 0) return true;
+               if (file_add[0]?.size > 2000000) return false;
             }
-         ),
-      file_add: yup.mixed().test("fileSize", "The file is too large", (value) => {
-         if (!value.length) return true // attachment is optional
-         return value[0].size <= 2000000
-      }),
-   }).required();
+            return true;
+         }),
+      value: yup.array().of(yup.object()).default([]),
+   }).test(
+      'either-value-or-file_add',
+      'Должен быть хотя бы один файл в Value или File Add',
+      function (values) {
+         const { value, file_add } = values;
+
+         const hasValue = Array.isArray(value) && value.length > 0;
+         let hasFileAdd = false;
+
+         //  Проверяем file_add только если он не null и не undefined
+         if (file_add !== null && file_add !== undefined) {  //  <--- Изменено условие
+            if (file_add instanceof FileList || Array.isArray(file_add)) {
+               hasFileAdd = file_add.length > 0;
+            }
+         }
+
+         if (!hasValue && !hasFileAdd) {
+            return this.createError({
+               path: 'file_add',
+               message: 'Должен быть хотя бы один файл в Value или File Add',
+            });
+         }
+
+         return true;
+      }
+   );
 
    const {
       register,
@@ -82,6 +128,7 @@ const DocumentsArticlePageEdit = ({ level }) => {
          errors,
          isValid,
       },
+      trigger,
       handleSubmit,
       reset,
       setValue,
@@ -95,7 +142,7 @@ const DocumentsArticlePageEdit = ({ level }) => {
          name: '',
          text: '',
          value: [],
-         file_add: [],
+         file_add: null,
          file_delete: [],
          published: 1,
       }
@@ -103,29 +150,44 @@ const DocumentsArticlePageEdit = ({ level }) => {
 
    watch()
 
-   window.getValues = getValues
-
    const handler = useCallback((name, value) => {
       setValue(name, value);
+      trigger();
    }, [setValue]);
 
    const getItemDocument = async () => {
       setLoading(true);
       try {
-         const data = await API.getItemDocument(docId)
-         const formattedData = {
-            ...getValues(),
-            name: data.document?.name,
-            text: data.document?.text,
-            value: data.document?.property?.document?.value
+         const data = await API.getItemDocument(docId);
+         if (data && data.document) {
+            const formattedData = {
+               ...getValues(),
+               name: data.document.name ?? '',
+               text: data.document.text ?? '',
+               value: data.document.property?.document?.value ?? []
+            };
+            reset(formattedData);
+            await trigger();
+         } else {
+            // Если данные не получены, устанавливаем значения по умолчанию
+            reset({
+               content_category_id: 4,
+               id: docId,
+               name: '',
+               text: '',
+               value: [],
+               file_add: [],
+               file_delete: [],
+               published: 1,
+            });
+            await trigger();
          }
-         reset(formattedData)
       } catch (error) {
-         console.error("Ошибка при загрузке данных:", error)
+         console.error("Ошибка при загрузке данных:", error);
       } finally {
          setLoading(false);
       }
-   }
+   };
 
    useEffect(() => {
       if (docId) { // Загружаем данные только если docId есть
@@ -135,13 +197,14 @@ const DocumentsArticlePageEdit = ({ level }) => {
       }
    }, [])
 
-   const deleteFile = useDeleteFile(setValue, getValues);
+   const deleteFile = useDeleteFile(setValue, getValues, trigger);
 
    const onSubmit = () => {
+      setPreloading(true);
       if (document.activeElement.attributes.name.value === 'publish') {
-         saveDocument(true);
+         saveDocument(true)
       } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveDocument(false);
+         saveDocument(false)
       }
    };
 
@@ -213,21 +276,26 @@ const DocumentsArticlePageEdit = ({ level }) => {
                   </div> : false}
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button>
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Опубликовать'}
+                        name={'publish'}
+                     />
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'unpublished'}
+                        text={'Сохранить без публикации'}
+                        name={'saveDraft'}
+                     />
                   </div>
 
                </form>
+               {unexpectedError?.title ? (
+                  <div className="pageTitle err">{unexpectedError.title}</div>
+               ) : false}
             </>}
          </ContantContainerAdmin>
       </div>

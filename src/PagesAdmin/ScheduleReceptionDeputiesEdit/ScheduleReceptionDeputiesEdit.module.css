@@ -1,0 +1,11 @@
+.imgContainer {
+   border-radius: var(--radius-12);
+   border: 1px solid var(--stroke-color-2);
+   overflow: hidden;
+   width: 100%;
+   aspect-ratio: 670 / 240;
+}
+
+.imgContainer img {
+   width: 100%;
+}

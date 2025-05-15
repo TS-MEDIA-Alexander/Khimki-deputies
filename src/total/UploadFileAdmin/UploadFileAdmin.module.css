@@ -13,6 +13,7 @@
 
 .fileContainer {
    display: flex;
+   margin-top: 16px;
 }
 
 .containerUpload,

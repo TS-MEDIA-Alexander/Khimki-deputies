@@ -43,8 +43,8 @@ const DocumentSecondItem = ({ el }) => (
    <div className={`mt12 ${s.documentContainer} ${s.documentSecondItem}`}>
       <a
          target="_blank"
-         rel="noopener noreferrer"
-         download={el.name?.trim()}
+         /* rel="noopener noreferrer" */
+         /* download={el.name?.trim()} */
          href={el.src}
          className={`${s.link} ${s.link_Second}`}
       >
@@ -64,8 +64,8 @@ const DocumentContainerDownloadDouble = ({ title, text, value = [null, null] }) 
          <div className={s.documentContainer}>
             <a
                target="_blank"
-               rel="noopener noreferrer"
-               download={firstEl?.name?.trim()}
+               /* rel="noopener noreferrer" */
+               /* download={firstEl?.name?.trim()} */
                href={firstEl?.src}
                className={s.link}
             >

@@ -9,34 +9,43 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from 'ComponentsAdmin/FormElements/Input';
-import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
 import Textarea from 'ComponentsAdmin/FormElements/Textarea';
+import API from 'API';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const ContactsEdit = ({ level }) => {
 
+   const id = 3646;
+
    const [statusSend, setStatusSend] = useState({});
    const [isReloading, setIsReloading] = useState(false);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveContacts = (isPublished) => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
-      /* const valueIsPublished = isPublished ? 1 : 0;
-
       for (let key in form) {
          if (key !== 'image_preview_url' && key !== 'parties' && form[key] !== null) {
-            if (key === 'party') {
-               formData.append(key, form[key].value);
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else {
-               formData.append(key, form[key]);
-            }
+            formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response)) */
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
@@ -94,28 +103,29 @@ const ContactsEdit = ({ level }) => {
       mode: 'all',
       resolver: yupResolver(schema),
       defaultValues: {
-         content_category_id: 2,
+         content_category_id: 6,
+         id: id,
          address: '',
          name: '',
          text: '',
+         phone: '',
+         email: '',
       }
    });
 
-   const loadContacts = useCallback(async () => {
+   const getItem = useCallback(async () => {
       setIsReloading(true);
       try {
-         /* const data = await API.getItemContacts(deputId)
+         const data = await API.getContent(id)
          const formattedData = {
             ...getValues(),
-            name: data?.deputat?.name,
-            text: data?.deputat?.text,
-            description: data?.deputat?.description,
-            image_preview_url: data?.deputat?.image_preview,
-            phone: data?.deputat?.phone,
-            email: data?.deputat?.email,
-            party: +data?.deputat?.party,
+            name: data?.name,
+            text: data?.text,
+            address: data?.address,
+            phone: data?.phone,
+            email: data?.email,
          }
-         reset(formattedData) */
+         reset(formattedData)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -124,19 +134,16 @@ const ContactsEdit = ({ level }) => {
    })
 
    useEffect(() => {
-      loadContacts();
+      getItem();
    }, []);
 
-   const handler = useCallback((value, key) => {
-      setValue(key, value);
+   const handler = useCallback((name, value) => {
+      setValue(name, value);
    }, [])
 
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         saveContacts(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveContacts(false);
-      }
+      setPreloading(true);
+      save();
    };
 
    const accessLevel = useRequireAccessLevel(level)
@@ -165,7 +172,7 @@ const ContactsEdit = ({ level }) => {
                         label={'Описание'}
                         placeholder={'Введите описание'}
                         className={'inputTitle mt24'}
-                        onChange={e => handler(e.target.value, "text")}
+                        onChange={e => handler("text", e.target.value)}
                      />
                   </div>
 
@@ -179,7 +186,7 @@ const ContactsEdit = ({ level }) => {
                            label={'Телефон'}
                            placeholder={'Телефон'}
                            className={'inputTitle mt24'}
-                           onChange={e => handler(maskInput(e.target.value, "+7 (000) 000-00-00"), "phone")}
+                           onChange={e => handler("phone", maskInput(e.target.value, "+7 (000) 000-00-00"))}
                         />
                      </div>
                      <div className={`inputContainer columnInput mt24`}>
@@ -191,7 +198,7 @@ const ContactsEdit = ({ level }) => {
                            label={'Почта'}
                            placeholder={'Почта'}
                            className={'inputTitle mt24'}
-                           onChange={e => handler(e.target.value, "email")}
+                           onChange={e => handler("email", e.target.value)}
                         />
                      </div>
                   </div>
@@ -205,27 +212,25 @@ const ContactsEdit = ({ level }) => {
                         label={'Адрес'}
                         placeholder={'Введите адрес'}
                         className={'inputTitle mt24'}
-                        onChange={e => handler(e.target.value, "address")}
+                        onChange={e => handler("address", e.target.value)}
                      />
                   </div>
 
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button>
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Сохранить'}
+                        name={'publish'}
+                     />
                   </div>
 
                </form>
+               {unexpectedError?.title ? (
+                  <div className="pageTitle err">{unexpectedError.title}</div>
+               ) : false}
             </>}
 
          </ContantContainerAdmin>

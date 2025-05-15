@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ContantContainerMain from '../../total/ContantContainerMain';
 import s from './Contacts.module.css';
 import { ROUTER } from '../../config';
 import { NavLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const Contacts = (props) => {
+
+   const contacts = useSelector((state) => state.contacts);
 
    return (
       <div>
@@ -17,11 +20,11 @@ const Contacts = (props) => {
 
             <div className={`${s.flexContainer} mt40`}>
                <div className={`${s.textContainer} text`}>
-                  Представительный орган местного самоуправления муниципального образования «Городской округ Химки Московской области» (Совет депутатов городского округа Химки Московской области)
+                  {contacts?.text}
 
-                  <div className={`${s.description} mt14`}>141400, Московская область, г. Химки, ул. Московская, д.15</div>
-                  <a href='mailto:sovetdep-himki@yandex.ru' className={s.description}>sovetdep-himki@yandex.ru</a>
-                  <div className={s.description}>+7 (495) 793-50-55</div>
+                  <div className={`${s.description} mt14`}>{contacts?.address}</div>
+                  <a href={`mailto:${contacts?.email}`} className={s.description}>{contacts?.email}</a>
+                  <div className={s.description}>{contacts?.phone}</div>
                </div>
 
                <a href='https://yandex.ru/maps/-/CDto4BlU' type="banner" target='_blank'>

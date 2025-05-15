@@ -29,6 +29,7 @@ const ItemComponentNews = (
       const formData = new FormData();
       formData.append("id", id);
       formData.append("published", currentPublished);
+      formData.append("name", name);
 
       API.postChangeElement(formData)
          .then(response => {

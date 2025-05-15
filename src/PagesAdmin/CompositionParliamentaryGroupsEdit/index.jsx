@@ -2,14 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ContantContainerAdmin from '../../total/ContantContainerAdmin';
 import s from './CompositionParliamentaryGroupsEdit.module.css';
 
-import ReactQuill from 'react-quill';
 import '../../total/quill.snow.css';
-import { ROUTER } from '../../config';
-import { NavLink, useParams } from 'react-router-dom';
 import API from '../../API';
-import UploadFileAdminMono from 'total/UploadFileAdminMono';
-import Deputates from 'Components/Deputates';
-import ReactSelect from 'ComponentsAdmin/React-select';
 import { useRequireAccessLevel, maskInput } from 'utils';
 
 /* React-hook-form */
@@ -18,33 +12,41 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from 'ComponentsAdmin/FormElements/Input';
 import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
-import Textarea from 'ComponentsAdmin/FormElements/Textarea';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const CompositionParliamentaryGroupsEdit = ({ level }) => {
 
+   const id = 3645;
+
    const [statusSend, setStatusSend] = useState({});
    const [isReloading, setIsReloading] = useState(false);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const save = (isPublished) => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
-      /* const valueIsPublished = isPublished ? 1 : 0;
-
       for (let key in form) {
-         if (key !== 'image_preview_url' && key !== 'parties' && form[key] !== null) {
-            if (key === 'party') {
-               formData.append(key, form[key].value);
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else {
-               formData.append(key, form[key]);
-            }
+         if (form[key] !== null) {
+            formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response)) */
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
@@ -79,32 +81,25 @@ const CompositionParliamentaryGroupsEdit = ({ level }) => {
       mode: 'all',
       resolver: yupResolver(schema),
       defaultValues: {
-         content_category_id: 2,
-         description: '',
+         content_category_id: 6,
+         id: id,
          name: '',
          text: '',
+         description: '',
       }
    });
 
-   window.getValues = getValues;
-   window.errors = errors;
-   window.isValid = isValid;
-
-   const load = useCallback(async () => {
+   const getItem = useCallback(async () => {
       setIsReloading(true);
       try {
-         /* const data = await API.getItemContacts(deputId)
+         const data = await API.getContent(id)
          const formattedData = {
             ...getValues(),
-            name: data?.deputat?.name,
-            text: data?.deputat?.text,
-            description: data?.deputat?.description,
-            image_preview_url: data?.deputat?.image_preview,
-            phone: data?.deputat?.phone,
-            email: data?.deputat?.email,
-            party: +data?.deputat?.party,
+            name: data?.name,
+            text: data?.text,
+            description: data?.description,
          }
-         reset(formattedData) */
+         reset(formattedData)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -113,7 +108,7 @@ const CompositionParliamentaryGroupsEdit = ({ level }) => {
    })
 
    useEffect(() => {
-      load();
+      getItem();
    }, []);
 
    const handler = useCallback((value, key) => {
@@ -121,11 +116,8 @@ const CompositionParliamentaryGroupsEdit = ({ level }) => {
    }, [])
 
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         save(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         save(false);
-      }
+      setPreloading(true);
+      save();
    };
 
    const accessLevel = useRequireAccessLevel(level)
@@ -146,15 +138,12 @@ const CompositionParliamentaryGroupsEdit = ({ level }) => {
                <form onSubmit={handleSubmit(onSubmit)} className="text text_admin mt40">
 
                   <div className={`inputContainer`}>
-                     <Textarea
-                        type={'text'}
+                     <ReactQuillForm
                         name={'text'}
                         errors={errors}
-                        register={register}
                         label={'Текст партии'}
                         placeholder={'Введите текст партии'}
-                        className={'inputTitle mt24'}
-                        onChange={e => handler(e.target.value, "text")}
+                        control={control}
                      />
                   </div>
 
@@ -183,21 +172,19 @@ const CompositionParliamentaryGroupsEdit = ({ level }) => {
 
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     {/* <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button> */}
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Сохранить'}
+                        name={'publish'}
+                     />
                   </div>
 
                </form>
+               {unexpectedError?.title ? (
+                  <div className="pageTitle err">{unexpectedError.title}</div>
+               ) : false}
             </>}
 
          </ContantContainerAdmin>

@@ -29,7 +29,7 @@ const CouncilLayout = (props) => {
           >
             Структура Совета депутатов
           </div>
-          {/* <div
+          <div
             id="scheduleReceptionDeputies"
             onClick={() => navigate(ROUTER.councilDeputies.deputies.chart)}
             className={`${s.tab} ${
@@ -37,7 +37,7 @@ const CouncilLayout = (props) => {
             }`}
           >
             График приема депутатов
-          </div> */}
+          </div>
           <div
             id="awardsCouncilDeputies"
             onClick={() => navigate(ROUTER.councilDeputies.deputies.awards)}

@@ -7,34 +7,43 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import UploadFileAdminMono from 'total/UploadFileAdminMono';
 import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
+import API from 'API';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const CharterAndSymbolsAnthem = () => {
 
+   const id = 3640;
+
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveNews = (isPublished) => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
-      const valueIsPublished = isPublished ? 1 : 0;
-
-      /* for (let key in form) {
-         if (key !== 'file_url' &&
-            key !== 'published_from_date' &&
-            key !== 'published_from_time' &&
+      for (let key in form) {
+         if (key !== 'value' &&
             form[key] !== null) {
-            if (key === 'published_from') {
-               formData.append(key, value)
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else
-               formData.append(key, form[key]);
+            formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response)) */
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
 
@@ -50,6 +59,10 @@ const CharterAndSymbolsAnthem = () => {
                return cleanedValue.length > 0;
             }
          ),
+      file_add: yup.mixed().test("fileSize", "The file is too large", (value) => {
+         if (!value.length) return true // attachment is optional
+         return value[0].size <= 2000000
+      }),
    }).required();
 
    const {
@@ -69,8 +82,13 @@ const CharterAndSymbolsAnthem = () => {
       mode: 'all',
       resolver: yupResolver(schema),
       defaultValues: {
-         content_category_id: 1,
+         content_category_id: 6,
+         id: id,
+         name: 'Гимн',
          text: '',
+         value: [],
+         file_add: [],
+         file_delete: [],
       }
    });
 
@@ -79,17 +97,12 @@ const CharterAndSymbolsAnthem = () => {
    const getItemNews = async () => {
       setLoading(true);
       try {
-         /* const data = await API.getItemNews() */
-         /* const formattedData = {
+         const data = await API.getContent(id)
+         const formattedData = {
             ...getValues(),
-            name: data?.name,
             text: data?.text,
-            file_url: [data?.file],
-            published_from_date: formatDateToEurope(data?.published_from?.split(' ')[0]),
-            published_from_time: data?.published_from?.split(' ')[1]?.slice(0, 5),
-            favorite: data?.favorite,
          }
-         reset(formattedData) */
+         reset(formattedData)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -101,38 +114,9 @@ const CharterAndSymbolsAnthem = () => {
       getItemNews();
    }, [])
 
-   const handleImageChange = useCallback((file) => {
-      handler(file, 'file_CoatOfArms'); // Сохраняем File для отправки
-
-      if (file) {
-         const url = window.URL.createObjectURL(file);
-         handler(url, 'file_url')
-      } else {
-         handler('', 'file_url')
-      }
-      trigger('file_CoatOfArms')
-   }, [setValue]);
-
-   useEffect(() => {
-      return () => {
-         // Отзываем URL при размонтировании
-         const imageUrl = getValues('file_url');
-         if (imageUrl) {
-            window.URL.revokeObjectURL(imageUrl);
-         }
-      };
-   }, []);
-
-   const handler = useCallback((file, name) => {
-      setValue(name, file);
-   }, [setValue]);
-
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         saveNews(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveNews(false);
-      }
+      setPreloading(true);
+      save();
    };
 
    if (loading) {
@@ -157,14 +141,18 @@ const CharterAndSymbolsAnthem = () => {
                </div>
 
                <div className="rowContainer mt40">
-                  <button
-                     type='submit'
-                     className={`publishBtn ${!isValid && 'disable'}`}
-                     disabled={!isValid}
-                     name="publish"
-                  >Сохранить</button>
+                  <Button
+                     isValid={isValid}
+                     preload={preload}
+                     classNames={'publishBtn'}
+                     text={'Сохранить'}
+                     name={'publish'}
+                  />
                </div>
             </form>
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
 
          </>}
       </div>

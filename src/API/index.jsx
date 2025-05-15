@@ -21,11 +21,11 @@ const instance = axios.create({
 });
 
 const API = {
-   getNews: async (page = 1, limit = 12, type = '', favorite = "", dateFrom = "", dateTo = "") => {
+   getNews: async (page = 1, limit = 12, type = '', favorite = "", search = "") => {
       const querySettings = getQuerySettings(type)
       return instance
          .get(
-            `content/news/list?page=${page}&limit=${limit}&favorite=${favorite}&${querySettings}`
+            `content/news/list?page=${page}&limit=${limit}&favorite=${favorite}&search=${search}&${querySettings}`
          )
          .then((response) => response.data)
          .catch((err) => {
@@ -41,22 +41,23 @@ const API = {
          })
    },
 
-   getDocumentations: async (page, limit = 10, type = '', search = "") => {
+   getDocumentations: async (page, limit = 10, type = '', favorite = "", search = "") => {
+      console.log(search)
       const querySettings = getQuerySettings(type)
       return instance
          .get(
-            `content/document/list?page=${page}&limit=${limit}&${querySettings}${search && `&search=${search}`}`
+            `content/document/list?page=${page}&limit=${limit}&${querySettings}&search=${search}`
          )
          .then((response) => response.data)
          .catch((err) => {
             console.log(`Error: ${err?.message}`)
          })
    },
-   getDeputaty: async (page, limit, type = '') => {
+   getDeputaty: async (page, limit, type = '', favorite = "", search = "") => {
       const querySettings = getQuerySettings(type)
       return instance
          .get(
-            `content/deputaty/list?page=${page}&limit=${limit}&${querySettings}`
+            `content/deputaty/list?page=${page}&limit=${limit}&${querySettings}&search=${search}`
          )
          .then((response) => response.data)
          .catch((err) => {
@@ -174,22 +175,14 @@ const API = {
             console.log(`Error: ${err?.message}`)
          })
    },
-   getLinks: async () => {
+   postGraficOfDeputies: async (data) => {
       return await instance
-         .get('content/link/list')
+         .post('/grafic/add', data)
          .then((response) => response.data)
          .catch((err) => {
             console.log(`Error: ${err?.message}`)
          })
-   },//Устарело
-   getPravosnov: async () => {
-      return await instance
-         .get('content/pravosnov/list')
-         .then((response) => response.data)
-         .catch((err) => {
-            console.log(`Error: ${err?.message}`)
-         })
-   },//Устарело
+   },
    getContent: async (id) => {
       return await instance
          .get(`/content/item?id=${id}`)

@@ -33,7 +33,11 @@
    color: #8291A1;
 }
 
-@media screen and (max-width: 1225px){
+.textBlock p {
+   margin: 0 !important;
+}
+
+@media screen and (max-width: 1225px) {
    .mobilMt20 {
       margin-top: 24px !important;
    }

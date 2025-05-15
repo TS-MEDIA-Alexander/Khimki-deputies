@@ -2,123 +2,67 @@ import React, { useState, useCallback, useEffect } from 'react';
 import s from './InternetResources.module.css';
 import ContantContainerAdmin from 'total/ContantContainerAdmin';
 
-/* React-hook-form */
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import Input from 'ComponentsAdmin/FormElements/Input';
 import { useRequireAccessLevel } from 'utils';
 import API from 'API';
 
+import preloader from '../../assets/icons/preloader.svg';
+
 const InternetResources = ({ level }) => {
+
+   const id = 3651;
+
+   const [form, setForm] = useState([])
+
    const [isReloading, setIsReloading] = useState(false);
    const [statusSend, setStatusSend] = useState({});
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveNews = (isPublished) => {
-      /*const form = getValues();
-       const formData = new FormData();
+   const save = async () => {
+      const formData = new FormData();
+      const value = JSON.stringify({ links: form });
 
-      const value = formatDateToUS(form.published_from_date) + " " + form.published_from_time + ":00";
-      const valueIsPublished = isPublished ? 1 : 0;
+      formData.append('content_category_id', 6);
+      formData.append('id', id);
+      formData.append('name', 'Интернет-ресурсы');
+      formData.append('json', value);
 
-      for (let key in form) {
-         if (key !== 'image_preview_url' &&
-            key !== 'published_from_date' &&
-            key !== 'published_from_time' &&
-            form[key] !== null) {
-            if (key === 'published_from') {
-               formData.append(key, value)
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else
-               formData.append(key, form[key]);
-         }
-      } */
-
-      /* API.postAddElement(formData)
-         .then(response => {
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
             setStatusSend(response);
-            reset();
-         }) */
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
-   /* React-hook-form */
-   /* const sourceSchema = yup.string()
-      .typeError('Должно быть строкой')
-      .min(2, 'Заголовок должен быть минимум 2 символа')
-      .max(120, 'Не более 120 символов')
-      .required('Обязательно');
+   const handler = (index, field, value) => {
+      // Создаем копию текущего состояния формы
+      const newForm = [...form];
 
-   const urlSchema = yup.string()
-      .matches(
-         /^https?:\/\/.+/,
-         'Некорректный URL: должен начинаться с http:// или https://'
-      );
- */
+      // Обновляем значение поля в соответствующем объекте
+      newForm[index][field] = value;
 
-   const schema = yup.object().shape({
-      links: yup.array().of(
-         yup.object().shape({
-            name: yup.string().typeError('Должно быть строкой')
-               .min(2, 'Заголовок должен быть минимум 2 символа')
-               .max(120, 'Не более 120 символов')
-               .required('Обязательно'),
-            link: yup.string().url('Invalid URL').required('Link is required'),
-         })
-      ),
-   });
-
-   const {
-      watch,
-      register,
-      formState: {
-         errors,
-         isValid,
-      },
-      handleSubmit,
-      control,
-      reset,
-      setValue,
-      getValues,
-   } = useForm({
-      mode: 'all',
-      resolver: yupResolver(schema),
-      defaultValues: {
-         links: []
-      }
-   });
-
-   const handler = useCallback((file, name) => {
-      /* setValue(name, file); */
-   }, [/* setValue */]);
+      // Обновляем состояние формы
+      setForm(newForm);
+   };
 
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         saveNews(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveNews(false);
-      }
+      setPreloading(true);
+      save();
    };
 
-   /* window.getValues = getValues; */
-
-   const loadResources = useCallback(async () => {
+   const getItem = useCallback(async () => {
       setIsReloading(true);
       try {
-         const data = await API.getContent(1, 14, 5);
-         console.log(data)
-         reset(data)
-        /*  const formattedData = {}
-         data.link.list.forEach((el, i) => {
-            formattedData['name${i}'] = el.name;
-            formattedData['URL${i}'] = el.link;
-         }) */
-
-         /* const formattedData = {
-            ...getValues(),
-            name: list?.deputat?.name,
-            link: data?.deputat?.text,
-         } */
+         const data = await API.getContent(id);
+         setForm(data.links)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -127,7 +71,7 @@ const InternetResources = ({ level }) => {
    })
 
    useEffect(() => {
-      loadResources()
+      getItem();
    }, [])
 
    const accessLevel = useRequireAccessLevel(level);
@@ -142,50 +86,54 @@ const InternetResources = ({ level }) => {
    return (
       <div>
          <ContantContainerAdmin>
-            <div className="pageTitle mt40">Интернет-ресурсы</div>
-            <form onSubmit={console.log(1111)/* handleSubmit(onSubmit) */} className="text text_admin mt40">
-               {[].map(el => <div className="rowContainer mt24">
+            {statusSend?.result ? (
+               <div className="pageTitle mt160">{statusSend.title}</div>
+            ) : <><div className="pageTitle mt40">Интернет-ресурсы</div>
+
+               {form.map((el, i) => <div className="rowContainer mt24" key={i}>
                   <div className="inputContainer columnInput">
-                     <Input
-                        type={'text'}
-                        name={el.name}
-                        /* errors={errors} */
-                        /* register={register} */
-                        label={'Заголовок'}
-                        placeholder={'Название ресурса'}
-                        className={'inputTitle'}
-                        onChange={e => handler(e.target.value, el.name)}
-                     />
+                     <div className={`inputContainer ${s.inputContainer}`}>
+                        <label className='body-s-400 ml8' htmlFor={'name'}>Заголовок</label>
+                        <input
+                           type="text"
+                           id={`name-${i}`}
+                           placeholder={'Название ресурса'}
+                           className={`inputTitle`}
+                           value={el.name}
+                           onChange={(e) => handler(i, 'name', e.target.value)}
+                        />
+                     </div>
                   </div>
                   <div className="inputContainer columnInput">
-                     <Input
-                        type={'text'}
-                        name={el.URL}
-                        /* errors={errors}
-                        register={register} */
-                        label={'Ссылка '}
-                        placeholder={'Ссылка на ресурс '}
-                        className={'inputTitle'}
-                        onChange={e => handler(e.target.value, el.URL)}
-                     />
+                     <div className={`inputContainer ${s.inputContainer}`}>
+                        <label className='body-s-400 ml8' htmlFor={'name'}>Ссылка на ресурс</label>
+                        <input
+                           type="text"
+                           id={`name-${i}`}
+                           placeholder={'Название ресурса'}
+                           className={`inputTitle`}
+                           value={el.link}
+                           onChange={(e) => handler(i, 'link', e.target.value)}
+                        />
+                     </div>
                   </div>
-               </div>)}
+               </div>
+               )}
 
                <div className="rowContainer mt40">
                   <button
                      type='submit'
-                     className={`publishBtn ${/* !isValid &&  */'disable'}`}
-                     /* disabled={!isValid} */
+                     className={`publishBtn ${preload ? 'disable' : ''}`}
                      name="publish"
-                  >Опубликовать</button>
-                  <button
-                     type='submit'
-                     className={`unpublished ${/* !isValid &&  */'disable'}`}
-                     /* disabled={!isValid} */
-                     name="saveDraft"
-                  >Сохранить без публикации</button>
+                     onClick={onSubmit}
+                  >{preload && <img src={preloader} alt="" className='preloader' />}
+                     Опубликовать</button>
                </div>
-            </form>
+            </>}
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
+
          </ContantContainerAdmin>
       </div>
    )

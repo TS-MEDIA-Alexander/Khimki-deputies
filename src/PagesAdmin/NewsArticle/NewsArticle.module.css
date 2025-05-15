@@ -95,12 +95,12 @@ blockquote {
    margin: 0;
    box-sizing: border-box;
    color: #303030;
-   font-size: 20px;
+   font-size: 14px;
    font-style: italic;
    font-weight: 400;
-   line-height: 28px;
+   line-height: 20px;
    letter-spacing: -0.4px;
-   padding-left: 40px;
+   padding-left: 24px;
    border-left: 2px solid #EEEE20;
 }
 

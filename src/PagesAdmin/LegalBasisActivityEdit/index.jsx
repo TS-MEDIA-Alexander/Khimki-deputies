@@ -13,17 +13,20 @@ import { useDeleteFile, useRequireAccessLevel } from 'utils';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const LegalBasisActivityEdit = ({ level }) => {
 
+   const id = 3641;
+
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveDocument = (isPublished) => {
+   const saveDocument = async () => {
       const form = getValues();
       const formData = new FormData();
-
-      const valueIsPublished = isPublished ? 1 : 0;
 
       for (let key in form) {
          if (key === "file_add") {
@@ -32,21 +35,32 @@ const LegalBasisActivityEdit = ({ level }) => {
                   formData.append(`file_add[${i}]`, form[key].item(i))
                }
             }
-         } else if (key === 'published') {
-            formData.append(key, valueIsPublished)
-         } else if (key === "file_delete") {
-            if (Array.isArray(form[key]) && form[key].length) {
-               form[key].forEach((id, index) => {
-                  formData.append(`${key}[${index}]`, id);
-               });
-            }
-         } else if (key !== 'value') {
-            formData.append(key, form[key]);
+         } else if (key !== 'value' &&
+            form[key] !== null) {
+            if (key === "file_delete") {
+               if (Array.isArray(form[key]) && form[key].length) {
+                  form[key].forEach((id, index) => {
+                     formData.append(`${key}[${index}]`, id);
+                  });
+               }
+            } else formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response))
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
@@ -74,29 +88,28 @@ const LegalBasisActivityEdit = ({ level }) => {
       resolver: yupResolver(schema),
       defaultValues: {
          content_category_id: 6,
+         id: id,
          value: [],
          file_add: [],
          file_delete: [],
-         published: 1,
       }
    });
 
    watch()
-
-   window.getValues = getValues
 
    const handler = useCallback((name, value) => {
       setValue(name, value);
       trigger('file_add')
    }, [setValue]);
 
-   const getItemDocument = async () => {
+   const getItem = async () => {
       setLoading(true);
       try {
-         const data = await API.getPravosnov()
+         const data = await API.getContent(id)
          const formattedData = {
             ...getValues(),
-            value: data.document?.list
+            name: data?.name,
+            value: data?.property?.document?.value,
          }
          reset(formattedData)
       } catch (error) {
@@ -107,12 +120,13 @@ const LegalBasisActivityEdit = ({ level }) => {
    }
 
    useEffect(() => {
-      getItemDocument();
+      getItem();
    }, [])
 
    const deleteFile = useDeleteFile(setValue, getValues);
 
    const onSubmit = () => {
+      setPreloading(true);
       if (document.activeElement.attributes.name.value === 'publish') {
          saveDocument(true);
       } else if (document.activeElement.attributes.name.value === 'saveDraft') {
@@ -149,7 +163,7 @@ const LegalBasisActivityEdit = ({ level }) => {
                      />
                   </div>
 
-                  {getValues()?.value?.length ? <div className='mt8 fileContainer'>
+                  {getValues()?.value?.[0] ? <div className='mt8 fileContainer'>
                      {getValues()?.value?.map(el => <DocumentContainerDownload
                         key={el.id}
                         id={el.id}
@@ -160,22 +174,20 @@ const LegalBasisActivityEdit = ({ level }) => {
                   </div> : false}
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     {/* <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button> */}
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Опубликовать'}
+                        name={'publish'}
+                     />
                   </div>
 
                </form>
             </>}
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
          </ContantContainerAdmin>
       </div>
    )

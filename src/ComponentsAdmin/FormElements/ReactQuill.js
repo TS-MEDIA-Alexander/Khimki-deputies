@@ -30,7 +30,7 @@ const ReactQuillForm = ({
       <div className={`inputContainer ${s.inputContainer}`}>
 
          <label className='body-s-400 ml8' htmlFor={name}>{label}</label>
-         <div className={`${errors[name] && s.err}`}>
+         <div className={`mt8 ${errors[name] && s.err}`}>
             <ReactQuill
                id={name}
                value={field.value || ''}

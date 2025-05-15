@@ -11,15 +11,18 @@ import * as yup from 'yup';
 import Textarea from 'ComponentsAdmin/FormElements/Textarea';
 import UploadFileAdminMono from 'total/UploadFileAdminMono';
 import useDeleteFile from 'utils';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const CharterAndSymbolsComponent = () => {
 
-   const id = 3620;
+   const id = 3636;
 
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveNews = () => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
@@ -36,17 +39,27 @@ const CharterAndSymbolsComponent = () => {
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response))
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
    const schema = yup.object({
       text: yup.string().typeError('Должно быть строкой')//typeError выводит ошибку, когда не строка
-         .matches(
-            /^[а-яА-Я0-9]+$/,
-            'Недопустимые символы',
-         ).required('Обязательно'),
+         .min(2, 'Заголовок должен быть минимум 2 символа')
+         .required('Обязательно'),
       file_add: yup.mixed().test("fileSize", "The file is too large", (value) => {
          if (!value.length) return true // attachment is optional
          return value[0].size <= 2000000
@@ -72,6 +85,7 @@ const CharterAndSymbolsComponent = () => {
       defaultValues: {
          content_category_id: 6,
          id: id,
+         name: 'Устав и символика',
          text: '',
          value: [],
          file_add: [],
@@ -81,7 +95,7 @@ const CharterAndSymbolsComponent = () => {
 
    watch();
 
-   const getItemNews = async () => {
+   const getItem = async () => {
       setLoading(true);
       try {
          const data = await API.getContent(id)
@@ -99,29 +113,25 @@ const CharterAndSymbolsComponent = () => {
    }
 
    useEffect(() => {
-      getItemNews();
+      getItem();
    }, [])
 
    const deleteFile = useDeleteFile(setValue, getValues);
 
-   const handleImageChange = useCallback((file) => {
-      handler('file_add', file); // Сохраняем File для отправки
-      handler('file_delete', [...getValues('file_delete'), getValues()?.value?.[0]?.id].filter(Boolean)); // Удаляем предыдущий файл
-      handler('value', file || []);
+   const handleFileChange = useCallback((file) => {
+      handler(file, 'file_add'); // Сохраняем File для отправки
+      handler([...getValues('file_delete'), getValues()?.value?.[0]?.id].filter(Boolean), 'file_delete'); // Удаляем предыдущий файл
+      handler(file || [], 'value');
       trigger('file_add');
    }, [setValue]);
 
-   const handler = useCallback((name, file) => {
+   const handler = useCallback((file, name) => {
       setValue(name, file);
    }, [setValue]);
 
    const onSubmit = () => {
-      /*  if (document.activeElement.attributes.name.value === 'publish') {
-          saveNews(true);
-       } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-          saveNews(false);
-       } */
-      saveNews()
+      setPreloading(true);
+      save();
    };
 
    if (loading) {
@@ -143,39 +153,44 @@ const CharterAndSymbolsComponent = () => {
                   placeholder={'Введите информацию'}
                   control={control}
                   className={'textareaText'}
-                  onChange={(e) => handler("text", e.target.value)}
+                  onChange={(e) => handler(e.target.value, "text")}
                />
             </div>
 
             <div className='mt24'>
                <UploadFileAdminMono
-                  handler={handleImageChange}
+                  handler={handleFileChange}
                   title={'Загрузите документы в форматах: doc, docx, xls, xlsx, pdf, zip, rar'}
                   type={'single'}
                   keyData={'file_add'}
+                  id={'charter'}
                />
             </div>
 
-            {getValues()?.value?.length ? <div className='mt8 fileContainer'>
+            {getValues()?.value[0] ? <div className='mt8 fileContainer'>
                {getValues()?.value?.map(el => <DocumentContainerDownload
-                  key={el.id}
-                  id={el.id}
-                  format={el.format}
-                  title={el.name}
+                  key={el?.id}
+                  id={el?.id}
+                  format={el?.format}
+                  title={el?.name}
                   deleteFn={(id) => deleteFile(id)}
                />)}
             </div> : false}
 
             <div className="rowContainer mt40">
-               <button
-                  type='submit'
-                  className={`publishBtn ${!isValid && 'disable'}`}
-                  disabled={!isValid}
-                  name="publish"
-               >Сохранить</button>
+               <Button
+                  isValid={isValid}
+                  preload={preload}
+                  classNames={'publishBtn'}
+                  text={'Сохранить'}
+                  name={'publish'}
+               />
             </div>
+            
          </form>
-
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
          </>}
       </div>
    )

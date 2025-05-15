@@ -1,16 +1,33 @@
-import React from "react";
+import API from "API";
+import React, { useEffect, useState } from "react";
 
 const RulesParliamentaryEthics = () => {
+
+   const [data, setData]=useState({})
+
+   const getItem = async () => {
+      try {
+         const data = await API.getContent(3643);
+         setData(data)
+      } catch (error) {
+         console.error("Ошибка при загрузке данных:", error)
+      }
+   }
+
+   useEffect(() => {
+      getItem();
+   }, [])
+
   return (
     <div>
       <div className="text">
         <div className="pageTitle">Правила депутатской этики</div>
-        <div className="mt40">
-          Настоящие правила определяют моральные принципы, этические нормы и
+        <div className="mt40" dangerouslySetInnerHTML={{__html: data?.text}}>
+          {/* Настоящие правила определяют моральные принципы, этические нормы и
           правила поведения, обязательные для депутата Совета депутатов
-          городского округа Химки.
+          городского округа Химки. */}
         </div>
-
+{/* 
         <p>1. Общие положения</p>
         <p>
           1.1. Депутат Совета депутатов городского округа (далее по тексту –
@@ -336,7 +353,7 @@ const RulesParliamentaryEthics = () => {
             политической партии, выдвинувшей депутата в составе списка
             кандидато.
           </li>
-        </ul>
+        </ul> */}
       </div>
     </div>
   );

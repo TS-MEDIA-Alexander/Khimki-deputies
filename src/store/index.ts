@@ -4,6 +4,7 @@ import authReducer from "./slice/auth";  // Импортируем reducer
 import newsReducer from "./slice/news";  // Импортируем reducer
 import documentReducer from "./slice/documents";  // Импортируем reducer
 import deputatesReducer from "./slice/deputates";  // Импортируем reducer
+import contactsReducer from "./slice/contacts";  // Импортируем reducer
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
 
 const store = configureStore({
@@ -12,6 +13,7 @@ const store = configureStore({
         news: newsReducer,
         documents: documentReducer,
         deputates: deputatesReducer,
+        contacts: contactsReducer
     },
 });
 

@@ -16,6 +16,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from 'ComponentsAdmin/FormElements/Input';
 import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const NewsArticlePageEdit = (props) => {
 
@@ -23,8 +24,10 @@ const NewsArticlePageEdit = (props) => {
 
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [preload, setPreloading] = useState(false);
+   const [unexpectedError, setUnexpectedError] = useState({})
 
-   const saveNews = (isPublished) => {
+   const saveNews = async (isPublished) => {
       const form = getValues();
       const formData = new FormData();
 
@@ -45,8 +48,21 @@ const NewsArticlePageEdit = (props) => {
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response))
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
+
    };
 
 
@@ -61,12 +77,19 @@ const NewsArticlePageEdit = (props) => {
       text: yup.string().nullable()
          .test('notEmpty', 'Обязательно', (value) => {
             if (!value) return false;
-            const cleanedValue = String(value).replace(/<p><br><\/p>/gi, '').trim();
+            const cleanedValue = String(value)?.replace(/<p><br><\/p>/gi, '').trim();
             return cleanedValue.length > 0;
          }),
       published_from_time: yup.string()
-         .required('Обязательно')
-         .matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Неверный формат времени (hh:mm)')
+         .nullable()
+         .test(
+            'validTimeFormat',
+            'Неверный формат времени (hh:mm)',
+            (value) => {
+               if (!value) return true; // Позволяем пропускать если пусто
+               return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value); // Используем test() напрямую
+            }
+         )
          .test(
             'validTime',
             'Недопустимое время',
@@ -83,7 +106,8 @@ const NewsArticlePageEdit = (props) => {
 
                return parsedHours >= 0 && parsedHours <= 23 && parsedMinutes >= 0 && parsedMinutes <= 59;
             }
-         ),
+         )
+         .required('Обязательно'),
       image_preview_url: yup.string().nullable(), // Допускаем null, если поле может быть пустым
       image_preview: yup.mixed().when('image_preview_url', {
          is: (image_preview_url) => image_preview_url,  // Проверяем, есть ли значение в image_preview_url
@@ -131,18 +155,16 @@ const NewsArticlePageEdit = (props) => {
       }
    });
 
-   window.getValues = getValues
-
    watch();
 
    const getItemNews = async () => {
       setLoading(true);
       try {
-         const data = await API.getItemNews(newsId)
+         const data = await API.getItemNews(newsId);
          const formattedData = {
             ...getValues(),
             name: data?.name,
-            description: data?.description || '',
+            description: data?.description,
             text: data?.text,
             image_preview_url: data?.image_preview,
             published_from_date: formatDateToEurope(data?.published_from?.split(' ')[0]),
@@ -189,10 +211,11 @@ const NewsArticlePageEdit = (props) => {
 
    const handler = useCallback((file, name) => {
       setValue(name, file);
-      trigger(null);
+      trigger(name);
    }, [setValue]);
 
    const onSubmit = () => {
+      setPreloading(true);
       if (document.activeElement.attributes.name.value === 'publish') {
          saveNews(true);
       } else if (document.activeElement.attributes.name.value === 'saveDraft') {
@@ -305,20 +328,25 @@ const NewsArticlePageEdit = (props) => {
                   </div>
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button>
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Опубликовать'}
+                        name={'publish'}
+                     />
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'unpublished'}
+                        text={'Сохранить без публикации'}
+                        name={'saveDraft'}
+                     />
                   </div>
                </form>
+               {unexpectedError?.title ? (
+                  <div className="pageTitle err">{unexpectedError.title}</div>
+               ) : false}
 
                <div className="h3-600 mt40">Предпросмотр:</div>
 

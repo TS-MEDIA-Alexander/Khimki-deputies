@@ -9,50 +9,63 @@ import Input from 'ComponentsAdmin/FormElements/Input';
 import Textarea from 'ComponentsAdmin/FormElements/Textarea';
 import UploadFileAdminMono from 'total/UploadFileAdminMono';
 import API from 'API';
+import useDeleteFile from 'utils';
+import DocumentContainerDownload from 'Components/DocumentContainerDownload';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const CharterAndSymbolsCoatOfArms = () => {
 
+   const id = 3637;
+
    const [statusSend, setStatusSend] = useState({});
    const [loading, setLoading] = useState(true);
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveNews = (isPublished) => {
+   const save = async () => {
       const form = getValues();
       const formData = new FormData();
 
-      const valueIsPublished = isPublished ? 1 : 0;
-
-      /* for (let key in form) {
-         if (key !== 'file_url' &&
-            key !== 'published_from_date' &&
-            key !== 'published_from_time' &&
+      for (let key in form) {
+         if (key !== 'value' &&
             form[key] !== null) {
-            if (key === 'published_from') {
-               formData.append(key, value)
-            } else if (key === 'published') {
-               formData.append(key, valueIsPublished)
-            } else
-               formData.append(key, form[key]);
+            if (key === "file_delete") {
+               if (Array.isArray(form[key]) && form[key].length) {
+                  form[key].forEach((id, index) => {
+                     formData.append(`${key}[${index}]`, id);
+                  });
+               }
+            } else formData.append(key, form[key]);
          }
       }
 
-      API.postChangeElement(formData)
-         .then(response => setStatusSend(response)) */
+      try {
+         const response = await API.postChangeElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
 
    /* React-hook-form */
    const schema = yup.object({
-      text: yup.string() //typeError выводит ошибку, когда не строка
-         .test(
-            'notEmpty',
-            'Обязательно',
-            (value) => {
-               if (!value) return false;
-               const cleanedValue = value.replace(/<p><br><\/p>/gi, '').trim();
-               return cleanedValue.length > 0;
-            }
-         ),
-      file_CoatOfArms: yup.mixed().test("fileSize", "The file is too large", (value) => {
+      name: yup.string().typeError('Должно быть строкой')//typeError выводит ошибку, когда не строка
+         .min(2, 'Заголовок должен быть минимум 2 символа')
+         .max(120, 'Не более 120 символов')
+         .required('Обязательно'),
+      text: yup.string().typeError('Должно быть строкой')//typeError выводит ошибку, когда не строка
+         .min(2, 'Заголовок должен быть минимум 2 символа')
+         .required('Обязательно'),
+      file_add: yup.mixed().test("fileSize", "The file is too large", (value) => {
          if (!value.length) return true // attachment is optional
          return value[0].size <= 2000000
       }),
@@ -76,30 +89,28 @@ const CharterAndSymbolsCoatOfArms = () => {
       resolver: yupResolver(schema),
       defaultValues: {
          content_category_id: 6,
-         id: 3621,
+         id: id,
          name: '',
          text: '',
-         file_CoatOfArms: null,
-         file_url: '',
+         value: [],
+         file_add: [],
+         file_delete: [],
       }
    });
 
    watch();
 
-   const getItemNews = async () => {
+   const getItem = async () => {
       setLoading(true);
       try {
-         const data = await API.getContent(3620)
-         /* const formattedData = {
+         const data = await API.getContent(id)
+         const formattedData = {
             ...getValues(),
             name: data?.name,
             text: data?.text,
-            file_url: [data?.file],
-            published_from_date: formatDateToEurope(data?.published_from?.split(' ')[0]),
-            published_from_time: data?.published_from?.split(' ')[1]?.slice(0, 5),
-            favorite: data?.favorite,
+            value: [data?.property?.document?.value[0]],
          }
-         reset(formattedData) */
+         reset(formattedData)
       } catch (error) {
          console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -108,41 +119,25 @@ const CharterAndSymbolsCoatOfArms = () => {
    }
 
    useEffect(() => {
-      getItemNews();
+      getItem();
    }, [])
 
-   const handleImageChange = useCallback((file) => {
-      handler(file, 'file_CoatOfArms'); // Сохраняем File для отправки
+   const deleteFile = useDeleteFile(setValue, getValues);
 
-      if (file) {
-         const url = window.URL.createObjectURL(file);
-         handler(url, 'file_url')
-      } else {
-         handler('', 'file_url')
-      }
-      trigger('file_CoatOfArms')
+   const handleFileChange = useCallback((file) => {
+      handler('file_add', file); // Сохраняем File для отправки
+      handler('file_delete', [...getValues('file_delete'), getValues()?.value?.[0]?.id].filter(Boolean)); // Удаляем предыдущий файл
+      handler('value', file || []);
+      trigger('file_add');
    }, [setValue]);
 
-   useEffect(() => {
-      return () => {
-         // Отзываем URL при размонтировании
-         const imageUrl = getValues('file_url');
-         if (imageUrl) {
-            window.URL.revokeObjectURL(imageUrl);
-         }
-      };
-   }, []);
-
-   const handler = useCallback((file, name) => {
+   const handler = useCallback((name, file) => {
       setValue(name, file);
    }, [setValue]);
 
    const onSubmit = () => {
-      if (document.activeElement.attributes.name.value === 'publish') {
-         saveNews(true);
-      } else if (document.activeElement.attributes.name.value === 'saveDraft') {
-         saveNews(false);
-      }
+      setPreloading(true);
+      save();
    };
 
    if (loading) {
@@ -165,7 +160,7 @@ const CharterAndSymbolsCoatOfArms = () => {
                      label={'Заголовок'}
                      placeholder={'Не более 120 символов'}
                      className={'inputTitle'}
-                     onChange={e => handler(e.target.value, "name")}
+                     onChange={e => handler("name", e.target.value)}
                   />
                </div>
 
@@ -178,28 +173,43 @@ const CharterAndSymbolsCoatOfArms = () => {
                      placeholder={'Введите информацию'}
                      control={control}
                      className={'textareaText'}
-                     onChange={(e) => handler(e.target.value, "text")}
+                     onChange={(e) => handler("text", e.target.value)}
                   />
                </div>
 
                <div className='mt24'>
                   <UploadFileAdminMono
-                     handler={handleImageChange}
-                     title={'Загрузите обложку в форматах: jpeg, png'}
+                     handler={handleFileChange}
+                     title={'Загрузите документы в форматах: doc, docx, xls, xlsx, pdf, zip, rar'}
                      type={'single'}
-                     keyData={'file_CoatOfArms'}
+                     keyData={'file_add'}
+                     id={'gerb'}
                   />
                </div>
 
+               {getValues()?.value[0] ? <div className='mt8 fileContainer'>
+                  {getValues()?.value?.map(el => <DocumentContainerDownload
+                     key={el.id}
+                     id={el.id}
+                     format={el.format}
+                     title={el.name}
+                     deleteFn={(id) => deleteFile(id)}
+                  />)}
+               </div> : false}
+
                <div className="rowContainer mt40">
-                  <button
-                     type='submit'
-                     className={`publishBtn ${!isValid && 'disable'}`}
-                     disabled={!isValid}
-                     name="publish"
-                  >Сохранить</button>
+                  <Button
+                     isValid={isValid}
+                     preload={preload}
+                     classNames={'publishBtn'}
+                     text={'Сохранить'}
+                     name={'publish'}
+                  />
                </div>
             </form>
+            {unexpectedError?.title ? (
+               <div className="pageTitle err">{unexpectedError.title}</div>
+            ) : false}
 
          </>}
       </div>

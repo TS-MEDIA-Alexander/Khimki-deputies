@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import s from "./DeputiesPageList.module.css";
 import API from "../../API";
 import { NavLink } from "react-router-dom";
@@ -13,6 +13,8 @@ import SearchInput from "ComponentsAdmin/SearchInput/SearchInput";
 
 const DeputiesPageList = ({ level }) => {
 
+   const [search, setSearch] = useState('');
+
    const {
       data,
       checkboxAll,
@@ -23,14 +25,16 @@ const DeputiesPageList = ({ level }) => {
       handleDeputatesUpdate,
       changePage, choiceCheckbox,
       handleChoiceCheckbox, handleChoiceCheckboxAll, removeSelectionsChecboxAll,
-      publickAll, removePublickAll, moveInBasketInAll
+      publickAll, removePublickAll, moveInBasketInAll,
+      searchDebounce
    } = useDataManagement(
       state => state.deputates,
       API.getDeputaty,
       data => deputates(data),
       updatePublished,
       addOrRemoveChoiceCheckbox,
-      setChoiceCheckboxRemoveOrAddAll
+      setChoiceCheckboxRemoveOrAddAll,
+      search
    );
 
    const accessLevel = useRequireAccessLevel(level)
@@ -45,7 +49,7 @@ const DeputiesPageList = ({ level }) => {
             <h1 className={"h3-600 pageTitleAdmin"}>Структура Совета депутатов</h1>
             <div className={s.container}>
                <div className="mt40 flexContainer">
-                  <SearchInput placeholder="Поиск по депутатам" />
+                  <SearchInput set={setSearch} get={search} onKeyUp={searchDebounce} placeholder="Поиск по депутатам" />
                   <NavLink to={ROUTER.admin.deputiesArticle} className="publishBtn">
                      Добавить депутата
                   </NavLink>
@@ -70,7 +74,7 @@ const DeputiesPageList = ({ level }) => {
                   </div>
                   <div className='titleBlock'>Заголовок</div>
                   <div className='publishedBlock'>Опубликовано</div>
-                  <div className='dateBlock'>Дата публикации</div>
+                  <div className='dateBlock dateBlock_m2'>Дата публикации</div>
                </div>
                <div>
                   {data?.list?.map((el) => (

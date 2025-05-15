@@ -8,11 +8,13 @@ import API from "API";
 import { ROUTER } from 'config';
 import { useNavigate } from 'react-router-dom';
 
-
+import preloader from '../../assets/icons/preloader.svg';
 
 const LoginPage = (props) => {
 
    const navigate = useNavigate();
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
    const initialState = {
       /* id: 1, */
@@ -27,19 +29,28 @@ const LoginPage = (props) => {
 
    const dispatch = useAppDispatch()
 
-   const loginSybmit = () => {
+   const loginSybmit = async () => {
+      setPreloading(true);
       const data = new FormData();
       for (let key in authForm) {
          data.append(key, authForm[key])
       }
 
-      API.postLogin(data)
-         .then((data) => {
-            return data?.result === true && (
-               dispatch(login({ ...authForm, ...{ accessLevel: +Object.keys(data.userGroup)[0] } })),
-               navigate(ROUTER.admin.news, { replace: true })
-            )
-         })
+      try {
+         const response = await API.postLogin(data);
+         if (response && response?.result === true) {
+            setUnexpectedError({});
+            dispatch(login({ ...authForm, ...{ accessLevel: +Object.keys(response.userGroup)[0] } }))
+            navigate(ROUTER.admin.news, { replace: true })
+
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    }
 
    return (
@@ -50,16 +61,21 @@ const LoginPage = (props) => {
                <div className="pageTitle">Авторизация</div>
                <input onChange={(e) => handler(e, 'login')} value={authForm.login} className='inputTitle mt24' type="text" placeholder='Логин' />
                <input onChange={(e) => handler(e, 'password')} value={authForm.password} className='inputTitle mt16' type="password" placeholder='Пароль' />
-               <div onClick={loginSybmit} className='publishBtn loginBtn mt16'>Войти</div>
+               <div onClick={loginSybmit} className={`publishBtn loginBtn mt16 ${preload ? 'disable' : ''}`}>
+                  {preload && <img src={preloader} alt="" className='preloader' />}
+                  Войти</div>
             </div>
          </div>
+         {unexpectedError?.title ? (
+            <div className="pageTitle err">{unexpectedError.title}</div>
+         ) : false}
 
          login: sdAdmin, <br />
-         password: sdPass~132025 <br />
+         password: sdPass~132025 < br />
          <br />
          login: sdManager, <br />
-         password: sdPass~090325 <br />
-      </div>
+         password: sdPass~090325 < br />
+      </div >
 
    )
 }

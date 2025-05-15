@@ -109,7 +109,7 @@ export const getCurrentTime = () => {
    return `${hours}:${minutes}`;
 }
 
-export const useDeleteFile = (setValue, getValues) => {
+export const useDeleteFile = (setValue, getValues, trigger = () => { }) => {
 
    const deleteFile = (id) => {
       const currentValues = getValues(); // Получаем текущие значения формы
@@ -127,6 +127,8 @@ export const useDeleteFile = (setValue, getValues) => {
       // 3. Обновляем состояние формы с помощью setValue
       setValue('value', newValue);
       setValue('file_delete', newFileDelete);
+
+      trigger()
    };
 
    return deleteFile;
@@ -152,7 +154,7 @@ export function useDebounce(func, delay, cleanUp = false) {
    };
 }
 
-export function useDataManagement(selector, getData, fetchDataAction, updatePublishedData, addOrRemoveChoiceCheckbox, setChoiceCheckboxRemoveOrAddAll) {
+export function useDataManagement(selector, getData, fetchDataAction, updatePublishedData, addOrRemoveChoiceCheckbox, setChoiceCheckboxRemoveOrAddAll, search) {
 
    const dispatch = useDispatch();
    const data = useSelector(selector, shallowEqual);
@@ -162,10 +164,10 @@ export function useDataManagement(selector, getData, fetchDataAction, updatePubl
    const [isReloading, setIsReloading] = useState(false);
 
    // Функция загрузки данных
-   const loadData = useCallback(async () => {
+   const loadData = useCallback(async (search) => {
       setIsReloading(true);
       try {
-         const data = await getData(currentPage, limit, "admin"); //  Используем API для документов
+         const data = await getData(currentPage, limit, "admin", "", search); //  Используем API для документов
          dispatch(fetchDataAction(data)); //  Диспатчим action
       } catch (error) {
          console.error('Ошибка при загрузке документов:', error);
@@ -178,6 +180,9 @@ export function useDataManagement(selector, getData, fetchDataAction, updatePubl
    useEffect(() => {
       loadData();
    }, [loadData]);
+
+   //Поиск
+   const searchDebounce = useDebounce(() => loadData(search), 500);
 
    //Функция снятия/постановки на публикацию
    const UpdateCheckbox = (id, currentPublished) => {
@@ -240,7 +245,7 @@ export function useDataManagement(selector, getData, fetchDataAction, updatePubl
       limit, isReloading, UpdateCheckbox,
       handleUpdate, changePage, choiceCheckbox,
       handleChoiceCheckbox, handleChoiceCheckboxAll, removeSelectionsChecboxAll,
-      publickAll, removePublickAll, moveInBasketInAll,
+      publickAll, removePublickAll, moveInBasketInAll, searchDebounce
    }
 }
 
@@ -294,7 +299,7 @@ export function useRequireAccessLevel(level) {
    const location = useLocation();
 
    const accessLevelh = level >= auth.user.accessLevel;
-   
+
 
    useEffect(() => {
       if (!accessLevelh) {

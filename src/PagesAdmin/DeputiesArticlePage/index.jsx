@@ -17,12 +17,15 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import Input from 'ComponentsAdmin/FormElements/Input';
 import ReactQuillForm from 'ComponentsAdmin/FormElements/ReactQuill';
+import Button from 'ComponentsAdmin/Button/Button';
 
 const DeputiesArticlePage = ({ level }) => {
 
    const [statusSend, setStatusSend] = useState({});
+   const [unexpectedError, setUnexpectedError] = useState({});
+   const [preload, setPreloading] = useState(false);
 
-   const saveDeputat = (isPublished) => {
+   const saveDeputat = async (isPublished) => {
       const form = getValues();
       const formData = new FormData();
 
@@ -40,8 +43,20 @@ const DeputiesArticlePage = ({ level }) => {
          }
       }
 
-      API.postAddElement(formData)
-         .then(response => setStatusSend(response))
+      try {
+         const response = await API.postAddElement(formData);
+         if (response) {
+            setStatusSend(response);
+            reset();
+            setUnexpectedError({});
+         } else {
+            setUnexpectedError({ result: 'err', title: 'Непредвиденная ошибка. Проверьте соединение с Интернетом' });
+         }
+      } catch (error) {
+         console.error("Ошибка при сохранении:", error);
+      } finally {
+         setPreloading(false);
+      }
    };
 
    /* React-hook-form */
@@ -192,6 +207,7 @@ const DeputiesArticlePage = ({ level }) => {
    }, [])
 
    const onSubmit = () => {
+      setPreloading(true);
       if (document.activeElement.attributes.name.value === 'publish') {
          saveDeputat(true);
       } else if (document.activeElement.attributes.name.value === 'saveDraft') {
@@ -291,20 +307,25 @@ const DeputiesArticlePage = ({ level }) => {
                   </div>
 
                   <div className="rowContainer mt40">
-                     <button
-                        type='submit'
-                        className={`publishBtn ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="publish"
-                     >Опубликовать</button>
-                     <button
-                        type='submit'
-                        className={`unpublished ${!isValid && 'disable'}`}
-                        disabled={!isValid}
-                        name="saveDraft"
-                     >Сохранить без публикации</button>
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'publishBtn'}
+                        text={'Опубликовать'}
+                        name={'publish'}
+                     />
+                     <Button
+                        isValid={isValid}
+                        preload={preload}
+                        classNames={'unpublished'}
+                        text={'Сохранить без публикации'}
+                        name={'saveDraft'}
+                     />
                   </div>
                </form>
+               {unexpectedError?.title ? (
+                  <div className="pageTitle err">{unexpectedError.title}</div>
+               ) : false}
 
                <div className="pageTitle mt40">Предпросмотр:</div>
 

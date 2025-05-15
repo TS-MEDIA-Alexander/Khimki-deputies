@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import s from "./DocumentsPageList.module.css";
 import API from "../../API";
 import { NavLink } from "react-router-dom";
@@ -12,6 +12,8 @@ import DropDownMenu from "ComponentsAdmin/DropDownMenu";
 import SearchInput from "ComponentsAdmin/SearchInput/SearchInput";
 
 const DocumentsPageList = React.memo(({ level }) => {
+
+   const [search, setSearch] = useState('');
    
    const {
       data,
@@ -23,14 +25,16 @@ const DocumentsPageList = React.memo(({ level }) => {
       handleDocumentUpdate,
       changePage, choiceCheckbox,
       handleChoiceCheckbox, handleChoiceCheckboxAll, removeSelectionsChecboxAll,
-      publickAll, removePublickAll, moveInBasketInAll
+      publickAll, removePublickAll, moveInBasketInAll,
+      searchDebounce
    } = useDataManagement(
       state => state.documents,
       API.getDocumentations,
       data => documents(data),
       updatePublishedDocument,
       addOrRemoveChoiceCheckbox,
-      setChoiceCheckboxRemoveOrAddAll
+      setChoiceCheckboxRemoveOrAddAll,
+      search
    );
 
    const accessLevel = useRequireAccessLevel(level);
@@ -45,7 +49,7 @@ const DocumentsPageList = React.memo(({ level }) => {
             <h1 className={"h3-600 pageTitleAdmin"}>Документы</h1>
             <div className={s.container}>
                <div className="mt40 flexContainer">
-                  <SearchInput placeholder="Поиск по документам" />
+                  <SearchInput set={setSearch} get={search} onKeyUp={searchDebounce} placeholder="Поиск по документам" />
                   <NavLink to={ROUTER.admin.documentsArticle} className="publishBtn">Добавить документ</NavLink>
                </div>
                <DropDownMenu
@@ -68,7 +72,7 @@ const DocumentsPageList = React.memo(({ level }) => {
                   </div>
                   <div className='titleBlock'>Заголовок</div>
                   <div className='publishedBlock'>Опубликовано</div>
-                  <div className='dateBlock'>Дата публикации</div>
+                  <div className='dateBlock dateBlock_m2'>Дата публикации</div>
                </div>
                <div>
                   {data?.list?.map((el) => (

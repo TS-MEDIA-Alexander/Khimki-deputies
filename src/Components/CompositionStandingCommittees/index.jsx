@@ -1,13 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import s from './CompositionStandingCommittees.module.css';
+import API from 'API';
 
 const CompositionStandingCommittees = ({ isActive }) => {
+
+   const [data, setData]=useState({})
+
+   const getItem = async () => {
+      try {
+         const data = await API.getContent(3644);
+         setData(data);
+      } catch (error) {
+         console.error("Ошибка при загрузке данных:", error);
+      } 
+   }
+
+   useEffect(() => {
+      getItem();
+   }, [])
 
    return (
       <div className={`${s.tabPage} ${isActive === 'compositionStandingCommittees' && s.active}`}>
          <div className="text">
             <div className="pageTitle mt80">Состав постоянных депутатских комиссий</div>
-            <div className={`mt40 ${s.bold}`}>1.1. Комиссия по вопросам бюджета, финансовой, налоговой и экономической политики:</div>
+            <div className={`mt40`} dangerouslySetInnerHTML={{__html: data?.text}}></div>
+           {/*  <div className={`mt40 ${s.bold}`}>1.1. Комиссия по вопросам бюджета, финансовой, налоговой и экономической политики:</div>
             <ol>
                <li>Суслов В.И. - председатель</li>
                <li>Томашов Н.А.</li>
@@ -73,7 +90,7 @@ const CompositionStandingCommittees = ({ isActive }) => {
                <li>Кашников Н.А.</li>
                <li>Смирнова Н.И.</li>
                <li>Суслов В.И.</li>
-            </ol>
+            </ol> */}
 
          </div>
       </div>
